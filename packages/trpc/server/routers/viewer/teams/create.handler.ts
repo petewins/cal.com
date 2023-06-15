@@ -16,11 +16,41 @@ type CreateOptions = {
 };
 
 export const createHandler = async ({ ctx, input }: CreateOptions) => {
+  const { user } = ctx;
   const { slug, name, logo } = input;
+  const isOrgChildTeam = !!user.organizationId;
+  let org;
+
+  // For orgs we want to create teams under the org
+  if (user.organizationId) {
+    org = await prisma.team.findFirst({
+      where: {
+        id: user.organizationId,
+      },
+      select: {
+        members: true,
+      },
+    });
+
+    if (!org) throw new TRPCError({ code: "NOT_FOUND" });
+
+    // Check if the user has permission to create a team under the org
+    if (
+      !org?.members.some(
+        (member) =>
+          (member.userId === user.id && member.role === MembershipRole.OWNER) ||
+          member.role === MembershipRole.ADMIN
+      )
+    ) {
+      throw new TRPCError({ code: "FORBIDDEN" });
+    }
+  }
 
   const slugCollisions = await prisma.team.findFirst({
     where: {
       slug: slug,
+      // If this is under an org, check that the team doesn't already exist
+      ...(isOrgChildTeam && { parentId: user.organizationId }),
     },
   });
 
@@ -59,6 +89,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       metadata: {
         requestedSlug: slug,
       },
+      ...(isOrgChildTeam && { parentId: user.organizationId }),
       ...(!IS_TEAM_BILLING_ENABLED && { slug }),
     },
   });
