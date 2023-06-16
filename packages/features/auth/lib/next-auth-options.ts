@@ -1,4 +1,4 @@
-import type { UserPermissionRole, Membership, Team } from "@prisma/client";
+import type { UserPermissionRole, Team, Membership } from "@prisma/client";
 import type { AuthOptions, Session } from "next-auth";
 import { encode } from "next-auth/jwt";
 import type { Provider } from "next-auth/providers";
@@ -17,7 +17,7 @@ import { randomString } from "@calcom/lib/random";
 import rateLimit from "@calcom/lib/rateLimit";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
-import { IdentityProvider } from "@calcom/prisma/enums";
+import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 import { ErrorCode } from "./ErrorCode";
@@ -373,10 +373,25 @@ export const AUTH_OPTIONS: AuthOptions = {
         const belongsToActiveTeam = checkIfUserBelongsToActiveTeam(existingUser);
         const { teams, ...existingUserWithoutTeamsField } = existingUser;
 
+        let isOrgAdmin;
+        // Check if the existingUser is an org admin
+        if (existingUser.organizationId) {
+          const orgAdminQuery = await prisma.membership.findFirst({
+            where: {
+              teamId: existingUser.organizationId,
+              userId: existingUser.id,
+              role: MembershipRole.ADMIN,
+            },
+          });
+
+          isOrgAdmin = !!orgAdminQuery;
+        }
+
         return {
           ...existingUserWithoutTeamsField,
           ...token,
           belongsToActiveTeam,
+          isOrgAdmin,
         };
       };
       if (!user) {
@@ -401,6 +416,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           impersonatedByUID: user?.impersonatedByUID,
           belongsToActiveTeam: user?.belongsToActiveTeam,
           organizationId: user?.organizationId,
+          isOrgAdmin: user?.isOrgAdmin,
         };
       }
 
@@ -439,6 +455,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           impersonatedByUID: token.impersonatedByUID as number,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
           organizationId: token?.organizationId,
+          token: token?.isOrgAdmin,
         };
       }
 
@@ -458,6 +475,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           impersonatedByUID: token.impersonatedByUID as number,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
           organizationId: token?.organizationId,
+          isOrgAdmin: token?.isOrgAdmin as boolean,
         },
       };
       return calendsoSession;
