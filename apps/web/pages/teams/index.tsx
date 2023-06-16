@@ -1,3 +1,4 @@
+import { useSession } from "next-auth/react";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 import { TeamsListing } from "@calcom/features/ee/teams/components";
@@ -11,19 +12,30 @@ import PageWrapper from "@components/PageWrapper";
 
 function Teams() {
   const { t } = useLocale();
+  const session = useSession();
   return (
     <Shell
       heading={t("teams")}
       hideHeadingOnMobile
       subtitle={t("create_manage_teams_collaborative")}
       CTA={
-        <Button
-          variant="fab"
-          StartIcon={Plus}
-          type="button"
-          href={`${WEBAPP_URL}/settings/teams/new?returnTo=${WEBAPP_URL}/teams`}>
-          {t("new")}
-        </Button>
+        !session.data?.user.organizationId ? (
+          <Button
+            variant="fab"
+            StartIcon={Plus}
+            type="button"
+            href={`${WEBAPP_URL}/settings/teams/new?returnTo=${WEBAPP_URL}/teams`}>
+            {t("new")}
+          </Button>
+        ) : session.data?.user.isOrgAdmin ? (
+          <Button
+            variant="fab"
+            StartIcon={Plus}
+            type="button"
+            href={`${WEBAPP_URL}/settings/teams/new?returnTo=${WEBAPP_URL}/teams`}>
+            {t("new")}
+          </Button>
+        ) : undefined
       }>
       <TeamsListing />
     </Shell>

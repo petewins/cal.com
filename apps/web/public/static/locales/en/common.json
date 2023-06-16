@@ -1870,5 +1870,6 @@
   "set_up_your_profile": "Set up your profile",
   "set_up_your_profile_description": "Let people know who you are within {{orgName}}, and when they engage with your public link.",
   "sender_id_info": "Name or number shown as the sender of an SMS (some countries do not allow alphanumeric sender IDs)",
+  "org_admins_can_create_new_teams": "Only the admin of your organization can create new teams",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
