@@ -42,7 +42,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
           member.role === MembershipRole.ADMIN
       )
     ) {
-      throw new TRPCError({ code: "FORBIDDEN" });
+      throw new TRPCError({ code: "FORBIDDEN", message: "org_admins_can_create_new_teams" });
     }
   }
 
