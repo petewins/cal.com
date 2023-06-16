@@ -13,6 +13,16 @@ import PageWrapper from "@components/PageWrapper";
 function Teams() {
   const { t } = useLocale();
   const session = useSession();
+
+  const NewTeamButton = () => (
+    <Button
+      variant="fab"
+      StartIcon={Plus}
+      type="button"
+      href={`${WEBAPP_URL}/settings/teams/new?returnTo=${WEBAPP_URL}/teams`}>
+      {t("new")}
+    </Button>
+  );
   return (
     <Shell
       heading={t("teams")}
@@ -20,21 +30,9 @@ function Teams() {
       subtitle={t("create_manage_teams_collaborative")}
       CTA={
         !session.data?.user.organizationId ? (
-          <Button
-            variant="fab"
-            StartIcon={Plus}
-            type="button"
-            href={`${WEBAPP_URL}/settings/teams/new?returnTo=${WEBAPP_URL}/teams`}>
-            {t("new")}
-          </Button>
+          <NewTeamButton />
         ) : session.data?.user.isOrgAdmin ? (
-          <Button
-            variant="fab"
-            StartIcon={Plus}
-            type="button"
-            href={`${WEBAPP_URL}/settings/teams/new?returnTo=${WEBAPP_URL}/teams`}>
-            {t("new")}
-          </Button>
+          <NewTeamButton />
         ) : undefined
       }>
       <TeamsListing />

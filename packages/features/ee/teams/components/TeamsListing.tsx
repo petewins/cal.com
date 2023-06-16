@@ -1,10 +1,11 @@
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 
-import { WEBAPP_URL, APP_NAME } from "@calcom/lib/constants";
+import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Alert, Button, ButtonGroup, Label, showToast } from "@calcom/ui";
+import { Alert, Label, showToast, ButtonGroup, Button } from "@calcom/ui";
 import { EyeOff, Mail, RefreshCcw, UserPlus, Users, Video } from "@calcom/ui/components/icon";
 
 import { UpgradeTip } from "../../../tips";
@@ -15,6 +16,7 @@ export function TeamsListing() {
   const { t } = useLocale();
   const trpcContext = trpc.useContext();
   const router = useRouter();
+  const session = useSession();
 
   const [inviteTokenChecked, setInviteTokenChecked] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -85,6 +87,19 @@ export function TeamsListing() {
     return <SkeletonLoaderTeamList />;
   }
 
+  const CreateTeamButtonGroup = () => (
+    <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
+      <ButtonGroup>
+        <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
+          {t("create_team")}
+        </Button>
+        <Button color="minimal" href="https://go.cal.com/teams-video" target="_blank">
+          {t("learn_more")}
+        </Button>
+      </ButtonGroup>
+    </div>
+  );
+
   return (
     <>
       {!!errorMessage && <Alert severity="error" title={errorMessage} />}
@@ -102,16 +117,13 @@ export function TeamsListing() {
         features={features}
         background="/tips/teams"
         buttons={
-          <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
-            <ButtonGroup>
-              <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
-                {t("create_team")}
-              </Button>
-              <Button color="minimal" href="https://go.cal.com/teams-video" target="_blank">
-                {t("learn_more")}
-              </Button>
-            </ButtonGroup>
-          </div>
+          !session.data?.user.organizationId ? (
+            <CreateTeamButtonGroup />
+          ) : session.data?.user.isOrgAdmin ? (
+            <CreateTeamButtonGroup />
+          ) : (
+            <p>Only organization admins can create new teams</p>
+          )
         }>
         {teams.length > 0 ? <TeamList teams={teams} /> : <></>}
       </UpgradeTip>
