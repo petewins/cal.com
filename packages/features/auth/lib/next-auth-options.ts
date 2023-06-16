@@ -380,7 +380,7 @@ export const AUTH_OPTIONS: AuthOptions = {
             where: {
               teamId: existingUser.organizationId,
               userId: existingUser.id,
-              role: MembershipRole.ADMIN,
+              OR: [{ role: MembershipRole.ADMIN }, { role: MembershipRole.OWNER }],
             },
           });
 
