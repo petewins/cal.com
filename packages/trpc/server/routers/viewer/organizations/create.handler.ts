@@ -115,6 +115,7 @@ export const createHandler = async ({ input }: CreateOptions) => {
 
     totp.options = { step: 90 };
     const code = totp.generate(secret);
+    console.log({ code });
 
     await sendOrganizationEmailVerification({
       user: {
