@@ -157,6 +157,7 @@ const SettingsSidebarContainer = ({
 }: SettingsSidebarContainerProps) => {
   const { t } = useLocale();
   const router = useRouter();
+  const session = useSession();
   const tabsWithPermissions = useTabs();
   const [teamMenuState, setTeamMenuState] =
     useState<{ teamId: number | undefined; teamMenuOpen: boolean }[]>();
@@ -178,6 +179,16 @@ const SettingsSidebarContainer = ({
       }, 100);
     }
   }, [router.query.id, teams]);
+
+  const CreateTeamButton = () => (
+    <VerticalTabItem
+      name={t("add_a_team")}
+      href={`${WEBAPP_URL}/settings/teams/new`}
+      textClassNames="px-3 items-center mt-2 text-emphasis font-medium text-sm"
+      icon={Plus}
+      disableChevron
+    />
+  );
 
   return (
     <nav
@@ -333,13 +344,11 @@ const SettingsSidebarContainer = ({
                         </Collapsible>
                       );
                   })}
-                <VerticalTabItem
-                  name={t("add_a_team")}
-                  href={`${WEBAPP_URL}/settings/teams/new`}
-                  textClassNames="px-3 items-center mt-2 text-emphasis font-medium text-sm"
-                  icon={Plus}
-                  disableChevron
-                />
+                {!session.data?.user.organizationId ? (
+                  <CreateTeamButton />
+                ) : session.data?.user.isOrgAdmin ? (
+                  <CreateTeamButton />
+                ) : null}
               </div>
             </React.Fragment>
           );
