@@ -29,11 +29,7 @@ function Teams() {
       hideHeadingOnMobile
       subtitle={t("create_manage_teams_collaborative")}
       CTA={
-        !session.data?.user.organizationId ? (
-          <NewTeamButton />
-        ) : session.data?.user.isOrgAdmin ? (
-          <NewTeamButton />
-        ) : undefined
+        !session.data?.user.organizationId || session.data?.user.isOrgAdmin ? <NewTeamButton /> : undefined
       }>
       <TeamsListing />
     </Shell>

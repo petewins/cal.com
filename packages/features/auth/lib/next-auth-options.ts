@@ -374,7 +374,7 @@ export const AUTH_OPTIONS: AuthOptions = {
         const { teams, ...existingUserWithoutTeamsField } = existingUser;
 
         let isOrgAdmin;
-        // Check if the existingUser is an org admin
+        // Check if the existingUser is an org admin/owner
         if (existingUser.organizationId) {
           const orgAdminQuery = await prisma.membership.findFirst({
             where: {

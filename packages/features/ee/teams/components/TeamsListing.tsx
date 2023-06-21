@@ -117,9 +117,7 @@ export function TeamsListing() {
         features={features}
         background="/tips/teams"
         buttons={
-          !session.data?.user.organizationId ? (
-            <CreateTeamButtonGroup />
-          ) : session.data?.user.isOrgAdmin ? (
+          !session.data?.user.organizationId || session.data?.user.isOrgAdmin ? (
             <CreateTeamButtonGroup />
           ) : (
             <p>Only organization admins can create new teams</p>

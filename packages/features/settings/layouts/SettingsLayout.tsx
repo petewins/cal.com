@@ -344,9 +344,7 @@ const SettingsSidebarContainer = ({
                         </Collapsible>
                       );
                   })}
-                {!session.data?.user.organizationId ? (
-                  <CreateTeamButton />
-                ) : session.data?.user.isOrgAdmin ? (
+                {!session.data?.user.organizationId || session.data?.user.isOrgAdmin ? (
                   <CreateTeamButton />
                 ) : null}
               </div>
