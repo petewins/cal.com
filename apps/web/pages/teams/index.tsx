@@ -1,18 +1,21 @@
-import { useSession } from "next-auth/react";
+import type { GetServerSidePropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 import { TeamsListing } from "@calcom/features/ee/teams/components";
 import Shell from "@calcom/features/shell/Shell";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc";
 import { Button } from "@calcom/ui";
 import { Plus } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 
+import { ssrInit } from "@server/lib/ssr";
+
 function Teams() {
   const { t } = useLocale();
-  const session = useSession();
+  const [user] = trpc.viewer.me.useSuspenseQuery();
 
   const NewTeamButton = () => (
     <Button
@@ -28,20 +31,17 @@ function Teams() {
       heading={t("teams")}
       hideHeadingOnMobile
       subtitle={t("create_manage_teams_collaborative")}
-      CTA={
-        !session.data?.user.organizationId || session.data?.user.isOrgAdmin ? <NewTeamButton /> : undefined
-      }>
+      CTA={!user.organizationId || user.organization.isOrgAdmin ? <NewTeamButton /> : undefined}>
       <TeamsListing />
     </Shell>
   );
 }
 
-export const getStaticProps = async () => {
-  return {
-    props: {
-      ...(await serverSideTranslations("en", ["common"])),
-    },
-  };
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
+  await ssr.viewer.me.prefetch();
+
+  return { props: { trpcState: ssr.dehydrate(), ...(await serverSideTranslations("en", ["common"])) } };
 };
 
 Teams.requiresLicense = false;

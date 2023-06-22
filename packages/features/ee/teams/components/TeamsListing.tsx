@@ -1,4 +1,3 @@
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 
@@ -16,7 +15,6 @@ export function TeamsListing() {
   const { t } = useLocale();
   const trpcContext = trpc.useContext();
   const router = useRouter();
-  const session = useSession();
 
   const [inviteTokenChecked, setInviteTokenChecked] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -27,6 +25,8 @@ export function TeamsListing() {
       setErrorMessage(e.message);
     },
   });
+
+  const { data: user } = trpc.viewer.me.useQuery();
 
   const { mutate: inviteMemberByToken } = trpc.viewer.teams.inviteMemberByToken.useMutation({
     onSuccess: (teamName) => {
@@ -117,7 +117,7 @@ export function TeamsListing() {
         features={features}
         background="/tips/teams"
         buttons={
-          !session.data?.user.organizationId || session.data?.user.isOrgAdmin ? (
+          !user?.organizationId || user?.organization.isOrgAdmin ? (
             <CreateTeamButtonGroup />
           ) : (
             <p>Only organization admins can create new teams</p>
