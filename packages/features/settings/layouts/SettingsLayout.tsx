@@ -157,12 +157,12 @@ const SettingsSidebarContainer = ({
 }: SettingsSidebarContainerProps) => {
   const { t } = useLocale();
   const router = useRouter();
-  const session = useSession();
   const tabsWithPermissions = useTabs();
   const [teamMenuState, setTeamMenuState] =
     useState<{ teamId: number | undefined; teamMenuOpen: boolean }[]>();
 
   const { data: teams } = trpc.viewer.teams.list.useQuery();
+  const { data: user } = trpc.viewer.me.useQuery();
 
   useEffect(() => {
     if (teams) {
@@ -344,9 +344,7 @@ const SettingsSidebarContainer = ({
                         </Collapsible>
                       );
                   })}
-                {!session.data?.user.organizationId || session.data?.user.isOrgAdmin ? (
-                  <CreateTeamButton />
-                ) : null}
+                {!user?.organizationId || user?.organization.isOrgAdmin ? <CreateTeamButton /> : null}
               </div>
             </React.Fragment>
           );
