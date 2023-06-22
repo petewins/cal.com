@@ -97,6 +97,7 @@ const providers: Provider[] = [
       if (!user) {
         throw new Error(ErrorCode.IncorrectUsernamePassword);
       }
+
       const limiter = rateLimit({
         intervalInMs: 60 * 1000, // 1 minute
       });
