@@ -116,7 +116,7 @@ export function TeamsListing() {
               </ButtonGroup>
             </div>
           ) : (
-            <p>Only organization admins can create new teams</p>
+            <p>{t("org_admins_can_create_new_teams")}</p>
           )
         }>
         {teams.length > 0 ? <TeamList teams={teams} /> : <></>}
