@@ -180,16 +180,6 @@ const SettingsSidebarContainer = ({
     }
   }, [router.query.id, teams]);
 
-  const CreateTeamButton = () => (
-    <VerticalTabItem
-      name={t("add_a_team")}
-      href={`${WEBAPP_URL}/settings/teams/new`}
-      textClassNames="px-3 items-center mt-2 text-emphasis font-medium text-sm"
-      icon={Plus}
-      disableChevron
-    />
-  );
-
   return (
     <nav
       className={classNames(
@@ -344,7 +334,15 @@ const SettingsSidebarContainer = ({
                         </Collapsible>
                       );
                   })}
-                {!user?.organizationId || user?.organization.isOrgAdmin ? <CreateTeamButton /> : null}
+                {!user?.organizationId || user?.organization.isOrgAdmin ? (
+                  <VerticalTabItem
+                    name={t("add_a_team")}
+                    href={`${WEBAPP_URL}/settings/teams/new`}
+                    textClassNames="px-3 items-center mt-2 text-emphasis font-medium text-sm"
+                    icon={Plus}
+                    disableChevron
+                  />
+                ) : null}
               </div>
             </React.Fragment>
           );

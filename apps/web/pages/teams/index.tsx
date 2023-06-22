@@ -17,21 +17,22 @@ function Teams() {
   const { t } = useLocale();
   const [user] = trpc.viewer.me.useSuspenseQuery();
 
-  const NewTeamButton = () => (
-    <Button
-      variant="fab"
-      StartIcon={Plus}
-      type="button"
-      href={`${WEBAPP_URL}/settings/teams/new?returnTo=${WEBAPP_URL}/teams`}>
-      {t("new")}
-    </Button>
-  );
   return (
     <Shell
       heading={t("teams")}
       hideHeadingOnMobile
       subtitle={t("create_manage_teams_collaborative")}
-      CTA={!user.organizationId || user.organization.isOrgAdmin ? <NewTeamButton /> : undefined}>
+      CTA={
+        !user.organizationId || user.organization.isOrgAdmin ? (
+          <Button
+            variant="fab"
+            StartIcon={Plus}
+            type="button"
+            href={`${WEBAPP_URL}/settings/teams/new?returnTo=${WEBAPP_URL}/teams`}>
+            {t("new")}
+          </Button>
+        ) : undefined
+      }>
       <TeamsListing />
     </Shell>
   );

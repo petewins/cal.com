@@ -87,19 +87,6 @@ export function TeamsListing() {
     return <SkeletonLoaderTeamList />;
   }
 
-  const CreateTeamButtonGroup = () => (
-    <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
-      <ButtonGroup>
-        <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
-          {t("create_team")}
-        </Button>
-        <Button color="minimal" href="https://go.cal.com/teams-video" target="_blank">
-          {t("learn_more")}
-        </Button>
-      </ButtonGroup>
-    </div>
-  );
-
   return (
     <>
       {!!errorMessage && <Alert severity="error" title={errorMessage} />}
@@ -118,7 +105,16 @@ export function TeamsListing() {
         background="/tips/teams"
         buttons={
           !user?.organizationId || user?.organization.isOrgAdmin ? (
-            <CreateTeamButtonGroup />
+            <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
+              <ButtonGroup>
+                <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
+                  {t("create_team")}
+                </Button>
+                <Button color="minimal" href="https://go.cal.com/teams-video" target="_blank">
+                  {t("learn_more")}
+                </Button>
+              </ButtonGroup>
+            </div>
           ) : (
             <p>Only organization admins can create new teams</p>
           )
