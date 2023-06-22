@@ -14,7 +14,7 @@ import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
 import { isENVDev } from "@calcom/lib/env";
 import { randomString } from "@calcom/lib/random";
-import rateLimiter from "@calcom/lib/rateLimit";
+import rateLimit from "@calcom/lib/rateLimit";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
@@ -85,11 +85,6 @@ const providers: Provider[] = [
           organizationId: true,
           twoFactorEnabled: true,
           twoFactorSecret: true,
-          organization: {
-            select: {
-              id: true,
-            },
-          },
           teams: {
             include: {
               team: true,
@@ -102,14 +97,10 @@ const providers: Provider[] = [
       if (!user) {
         throw new Error(ErrorCode.IncorrectUsernamePassword);
       }
-      const limiter = await rateLimiter();
-      const rateLimit = await limiter({
-        identifier: user.email,
+      const limiter = rateLimit({
+        intervalInMs: 60 * 1000, // 1 minute
       });
-
-      if (!rateLimit.success) {
-        throw new Error(ErrorCode.RateLimitExceeded);
-      }
+      await limiter.check(10, user.email); // 10 requests per minute
 
       if (user.identityProvider !== IdentityProvider.CAL && !credentials.totpCode) {
         throw new Error(ErrorCode.ThirdPartyIdentityProviderEnabled);
