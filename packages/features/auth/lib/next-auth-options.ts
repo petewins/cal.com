@@ -1,4 +1,4 @@
-import type { UserPermissionRole, Team, Membership } from "@prisma/client";
+import type { UserPermissionRole, Membership, Team } from "@prisma/client";
 import type { AuthOptions, Session } from "next-auth";
 import { encode } from "next-auth/jwt";
 import type { Provider } from "next-auth/providers";
@@ -14,10 +14,10 @@ import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
 import { isENVDev } from "@calcom/lib/env";
 import { randomString } from "@calcom/lib/random";
-import rateLimit from "@calcom/lib/rateLimit";
+import rateLimiter from "@calcom/lib/rateLimit";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
-import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
+import { IdentityProvider } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 import { ErrorCode } from "./ErrorCode";
@@ -85,6 +85,11 @@ const providers: Provider[] = [
           organizationId: true,
           twoFactorEnabled: true,
           twoFactorSecret: true,
+          organization: {
+            select: {
+              id: true,
+            },
+          },
           teams: {
             include: {
               team: true,
@@ -97,11 +102,14 @@ const providers: Provider[] = [
       if (!user) {
         throw new Error(ErrorCode.IncorrectUsernamePassword);
       }
-
-      const limiter = rateLimit({
-        intervalInMs: 60 * 1000, // 1 minute
+      const limiter = await rateLimiter();
+      const rateLimit = await limiter({
+        identifier: user.email,
       });
-      await limiter.check(10, user.email); // 10 requests per minute
+
+      if (!rateLimit.success) {
+        throw new Error(ErrorCode.RateLimitExceeded);
+      }
 
       if (user.identityProvider !== IdentityProvider.CAL && !credentials.totpCode) {
         throw new Error(ErrorCode.ThirdPartyIdentityProviderEnabled);
@@ -373,25 +381,10 @@ export const AUTH_OPTIONS: AuthOptions = {
         const belongsToActiveTeam = checkIfUserBelongsToActiveTeam(existingUser);
         const { teams, ...existingUserWithoutTeamsField } = existingUser;
 
-        let isOrgAdmin;
-        // Check if the existingUser is an org admin/owner
-        if (existingUser.organizationId) {
-          const orgAdminQuery = await prisma.membership.findFirst({
-            where: {
-              teamId: existingUser.organizationId,
-              userId: existingUser.id,
-              OR: [{ role: MembershipRole.ADMIN }, { role: MembershipRole.OWNER }],
-            },
-          });
-
-          isOrgAdmin = !!orgAdminQuery;
-        }
-
         return {
           ...existingUserWithoutTeamsField,
           ...token,
           belongsToActiveTeam,
-          isOrgAdmin,
         };
       };
       if (!user) {
@@ -416,7 +409,6 @@ export const AUTH_OPTIONS: AuthOptions = {
           impersonatedByUID: user?.impersonatedByUID,
           belongsToActiveTeam: user?.belongsToActiveTeam,
           organizationId: user?.organizationId,
-          isOrgAdmin: user?.isOrgAdmin,
         };
       }
 
@@ -455,7 +447,6 @@ export const AUTH_OPTIONS: AuthOptions = {
           impersonatedByUID: token.impersonatedByUID as number,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
           organizationId: token?.organizationId,
-          token: token?.isOrgAdmin,
         };
       }
 
@@ -475,7 +466,6 @@ export const AUTH_OPTIONS: AuthOptions = {
           impersonatedByUID: token.impersonatedByUID as number,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
           organizationId: token?.organizationId,
-          isOrgAdmin: token?.isOrgAdmin as boolean,
         },
       };
       return calendsoSession;
