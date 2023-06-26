@@ -71,6 +71,13 @@ const informAboutDuplicateTranslations = () => {
 
 informAboutDuplicateTranslations();
 
+const getSubdomain = () => {
+  const _url = new URL(process.env.NEXT_PUBLIC_WEBAPP_URL);
+  const regex = new RegExp(/^([a-z]+\:\/{2})?((?<subdomain>[\w-]+)\.[\w-]+\.\w+)$/);
+  //console.log(_url.hostname, _url.hostname.match(regex));
+  return _url.hostname.match(regex)?.groups?.subdomain || null;
+};
+
 const plugins = [];
 if (process.env.ANALYZE === "true") {
   // only load dependency if env `ANALYZE` was set
@@ -93,7 +100,7 @@ plugins.push(withAxiom);
 const userTypeRouteRegExp = `/:user((?!${pages.join("/|")})[^/]*)/:type((?!book$)[^/]+)`;
 const teamTypeRouteRegExp = "/team/:slug/:type((?!book$)[^/]+)";
 const privateLinkRouteRegExp = "/d/:link/:slug((?!book$)[^/]+)";
-const embedUserTypeRouteRegExp = `/:user((?!${pages.join("|")}).*)/:type/embed`;
+const embedUserTypeRouteRegExp = `/:user((?!${pages.join("/|")})[^/]*)/:type/embed`;
 const embedTeamTypeRouteRegExp = "/team/:slug/:type/embed";
 
 /** @type {import("next").NextConfig} */
@@ -186,7 +193,43 @@ const nextConfig = {
     return config;
   },
   async rewrites() {
-    let rewrites = [
+    const defaultSubdomain = getSubdomain();
+    const subdomain = defaultSubdomain ? `(?!${defaultSubdomain})[^.]+` : "[^.]+";
+
+    const beforeFiles = [
+      {
+        has: [
+          {
+            type: "host",
+            value: `^(?<orgSlug>${subdomain})\\..*`,
+          },
+        ],
+        source: "/",
+        destination: "/team/:orgSlug",
+      },
+      {
+        has: [
+          {
+            type: "host",
+            value: `^(?<orgSlug>${subdomain})\\..*`,
+          },
+        ],
+        source: `/:user((?!${pages.join("|")}|_next|public)[a-zA-Z0-9\-_]+)`,
+        destination: "/org/:orgSlug/:user",
+      },
+      {
+        has: [
+          {
+            type: "host",
+            value: `^(?<orgSlug>${subdomain}[^.]+)\\..*`,
+          },
+        ],
+        source: `/:user((?!${pages.join("|")}|_next|public))/:path*`,
+        destination: "/:user/:path*",
+      },
+    ];
+
+    let afterFiles = [
       {
         source: "/org/:slug",
         destination: "/team/:slug",
@@ -266,14 +309,14 @@ const nextConfig = {
     // Enable New Booker for all Embed Requests
     if (process.env.NEW_BOOKER_ENABLED_FOR_EMBED === "1") {
       console.log("Enabling New Booker for Embed");
-      rewrites.push(
+      afterFiles.push(
         ...[
           {
-            source: `/:user((?!${pages.join("|")}).*)/:type/embed`,
+            source: embedUserTypeRouteRegExp,
             destination: "/new-booker/:user/:type/embed",
           },
           {
-            source: "/team/:slug/:type/embed",
+            source: embedTeamTypeRouteRegExp,
             destination: "/new-booker/team/:slug/:type/embed",
           },
         ]
@@ -283,7 +326,7 @@ const nextConfig = {
     // Enable New Booker for All but embed Requests
     if (process.env.NEW_BOOKER_ENABLED_FOR_NON_EMBED === "1") {
       console.log("Enabling New Booker for Non-Embed");
-      rewrites.push(
+      afterFiles.push(
         ...[
           {
             source: userTypeRouteRegExp,
@@ -300,7 +343,10 @@ const nextConfig = {
         ]
       );
     }
-    return rewrites;
+    return {
+      beforeFiles,
+      afterFiles,
+    };
   },
   async headers() {
     return [
