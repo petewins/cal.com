@@ -232,10 +232,8 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 usernameIsAvailable ? "" : ""
               )}>
               {isInputUsernamePremium ? <StarSolid className="mt-[2px] h-4 w-4 fill-orange-400" /> : <></>}
-              {!isInputUsernamePremium && usernameIsAvailable ? (
+              {!isInputUsernamePremium && usernameIsAvailable && (
                 <Check className="mt-[2px] h-4 w-4" />
-              ) : (
-                <></>
               )}
             </span>
           </div>
