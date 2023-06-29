@@ -172,7 +172,7 @@ The documentation of the API lives inside the code, and it's auto-generated, the
 The API is deployed to vercel.com, it uses a similar deployment script to website or webapp, and requires transpilation of several shared packages that are part of our turborepo ["app-store", "prisma", "lib", "ee"]
 in order to build and deploy properly.
 
-## Envirorment variables
+## Envirornment variables
 
 ### Required
 
@@ -180,9 +180,9 @@ DATABASE_URL=DATABASE_URL="postgresql://postgres:@localhost:5450/calendso"
 
 ## Optional
 
-API*KEY_PREFIX=cal*# This can be changed per envirorment so cal*test* for staging for example.
+API*KEY_PREFIX=cal*# This can be changed per envirornment so cal*test* for staging for example.
 
-> If you're self-hosting under our commercial license, you can use any prefix you want for api keys. either leave the default cal\_ (not providing any envirorment variable) or modify it
+> If you're self-hosting under our commercial license, you can use any prefix you want for api keys. either leave the default cal\_ (not providing any envirornment variable) or modify it
 
 **Ensure that while testing swagger, API project should be run in production mode**
 We make sure of this by not using next in dev, but next build && next start, if you want hot module reloading and such when developing, please use yarn run next directly on apps/api.
@@ -220,6 +220,6 @@ See `scripts/vercel-deploy.sh` for more info on how the deployment is done.
 
 > _❗ IMORTANT: If you're forking the API repo you will need to update the URLs in both the main repo [`.gitmodules`](https://github.com/calcom/cal.com/blob/main/.gitmodules#L7) and this repo [`./scripts/vercel-deploy.sh`](https://github.com/calcom/api/blob/main/scripts/vercel-deploy.sh#L3) ❗_
 
-## Environment variables
+##  variables
 
 Lastly API requires an env var for `DATABASE_URL` and `CALCOM_LICENSE_KEY`
